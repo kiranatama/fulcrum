@@ -6,7 +6,7 @@ class User < ActiveRecord::Base
   # Include default devise modules. Others available are:
   # :token_authenticatable, :confirmable, :lockable and :timeoutable
   devise :database_authenticatable, :registerable, :confirmable,
-         :recoverable, :rememberable, :trackable, :validatable
+         :recoverable, :rememberable, :trackable, :validatable, :omniauthable
 
   # Setup accessible (or protected) attributes for your model
   attr_accessible :email, :password, :password_confirmation, :remember_me,
@@ -40,5 +40,25 @@ class User < ActiveRecord::Base
 
   def as_json(options = {})
     super(:only => JSON_ATTRIBUTES)
+  end
+
+  def self.find_for_google_apps_oauth(access_token, signed_in_resource=nil)
+    data = access_token['user_info']
+    if user = User.find_by_email(data['email'])
+      user
+    else #create a user with stub pwd
+      initials = data['first_name'][0] + data['last_name'][0]
+      user = User.create!(:name => data['name'], :initials => initials, :email => data['email'], :password => Devise.friendly_token[0,20])
+      user.confirm!
+      user
+    end
+  end
+
+  def self.new_with_session(params, session)
+    super.tap do |user|
+      if data = session['devise.google_apps_data'] && session['devise.google_apps_data']['user_info']
+        user.email = data['email']
+      end
+    end
   end
 end
