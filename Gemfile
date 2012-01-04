@@ -1,15 +1,15 @@
-source 'http://rubygems.org'
+source 'http://192.168.0.8/gems/'
 
-gem 'rails', '3.0.10'
+gem 'rails', '3.0.11'
 
 # Bundle edge Rails instead:
 # gem 'rails', :git => 'git://github.com/rails/rails.git'
 
 # SQLite
-gem 'sqlite3-ruby', :require => 'sqlite3'
+#gem 'sqlite3-ruby', :require => 'sqlite3'
 
 # MySQL
-# gem 'mysql2', '~> 0.2.6'
+gem 'mysql2', '~> 0.2.6'
 
 # PostgreSQL
 # gem 'pg'
@@ -23,7 +23,7 @@ gem 'compass', '>= 0.11.5'
 # (using standard csv lib if ruby version is 1.9)
 
 # Use unicorn as the web server
-# gem 'unicorn'
+#gem 'mongrel', '>= 1.2.0.pre2'
 
 # Deploy with Capistrano
 # gem 'capistrano'
@@ -47,4 +47,5 @@ gem 'compass', '>= 0.11.5'
 group :development, :test do
   gem 'factory_girl_rails'
   gem 'jasmine', '1.1.0'
+  gem "letter_opener"
 end

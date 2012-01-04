@@ -29,6 +29,11 @@ class NoteTest < ActiveSupport::TestCase
     end
     assert_equal [user.email], ActionMailer::Base.deliveries.first.to
     assert_equal [@user.email], ActionMailer::Base.deliveries.first.from
+
+    @project.suppress_notifications = true
+    assert_no_difference 'ActionMailer::Base.deliveries.count' do
+      Factory.create(:note, :story => @story, :user => @user)
+    end
   end
 
   test "creating a note does not send a notification for the current user" do
@@ -43,5 +48,13 @@ class NoteTest < ActiveSupport::TestCase
       "id", "created_at", "updated_at", "user_id", "story_id", "note", "errors"
     ]
     assert_returns_json attrs, @note
+  end
+
+  test "returns a string" do
+    @note.created_at = "Nov 3, 2011"
+    assert_equal "Test note (#{@user.name} - Nov 03, 2011)", @note.to_s
+
+    @note.user = nil
+    assert_equal "Test note (Author Unknown - Nov 03, 2011)", @note.to_s
   end
 end

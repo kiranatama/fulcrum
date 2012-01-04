@@ -34,8 +34,40 @@ class Project < ActiveRecord::Base
   has_and_belongs_to_many :users, :uniq => true
   accepts_nested_attributes_for :users, :reject_if => :all_blank
 
-  has_many :stories,    :dependent => :destroy
+  has_many :stories, :dependent => :destroy do
+
+    # Populates the stories collection from a CSV string.
+    def from_csv(csv_string)
+
+      # Eager load this so that we don't have to make multiple db calls when
+      # searching for users by full name from the CSV.
+      users = proxy_owner.users
+
+      csv = CSV.parse(csv_string, :headers => true)
+      csv.map do |row|
+        row_attrs = row.to_hash
+        story = create({
+          :state        => row_attrs["Current State"],
+          :title        => row_attrs["Story"],
+          :story_type   => row_attrs["Story Type"],
+          :requested_by => users.detect {|u| u.name == row["Requested By"]},
+          :owned_by     => users.detect {|u| u.name == row["Owned By"]},
+          :accepted_at  => row_attrs["Accepted at"],
+          :estimate     => row_attrs["Estimate"],
+          :labels       => row_attrs["Labels"]
+        })
+
+        # Generate notes for this story if any are present
+        story.notes.from_csv_row(row)
+
+        story
+      end
+    end
+
+  end
   has_many :changesets, :dependent => :destroy
+
+  attr_accessor_with_default :suppress_notifications, false
 
   def to_s
     name

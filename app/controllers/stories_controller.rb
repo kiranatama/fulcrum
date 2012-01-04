@@ -3,7 +3,8 @@ class StoriesController < ApplicationController
   include ActionView::Helpers::TextHelper
 
   def index
-    @project = current_user.projects.find(params[:project_id])
+    @project = current_user.projects.find(params[:project_id],
+                                          :include => {:stories => :notes})
     @stories = @project.stories
     respond_to do |format|
       format.json { render :json => @stories }
@@ -102,7 +103,8 @@ class StoriesController < ApplicationController
 
     @project = current_user.projects.find(params[:project_id])
 
-    stories = []
+    # Do not send any email notifications during the import process
+    @project.suppress_notifications = true
 
     if params[:csv].blank?
 
@@ -110,30 +112,11 @@ class StoriesController < ApplicationController
 
     else
 
-      # FIXME Move to model
       begin
+        @stories = @project.stories.from_csv(File.read(params[:csv].path))
+        @valid_stories    = @stories.select(&:valid?)
+        @invalid_stories  = @stories.reject(&:valid?)
 
-        # Eager load this so that we don't have to make multiple db calls when
-        # searching for users by full name from the CSV.
-        users = @project.users
-
-        csv = CSV.parse(File.read(params[:csv].path), :headers => true)
-        csv.each do |row|
-          row = row.to_hash
-          stories << {
-            :state => row["Current State"],
-            :title => row["Story"],
-            :story_type => row["Story Type"],
-            :requested_by => users.detect {|u| u.name == row["Requested By"]},
-            :owned_by => users.detect {|u| u.name == row["Owned By"]},
-            :accepted_at => row["Accepted at"],
-            :estimate => row["Estimate"],
-            :labels => row["Labels"]
-          }
-        end
-        @stories = @project.stories.create(stories)
-        @valid_stories = @stories.select(&:valid?)
-        @invalid_stories = @stories.reject(&:valid?)
         flash[:notice] = "Imported #{pluralize(@valid_stories.count, "story")}"
 
         unless @invalid_stories.empty?

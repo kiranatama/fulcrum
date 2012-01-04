@@ -11,7 +11,7 @@ class Story < ActiveRecord::Base
   CSV_HEADERS = [
     "Id", "Story","Labels","Iteration","Iteration Start","Iteration End",
     "Story Type","Estimate","Current State","Created at","Accepted at",
-    "Deadline","Requested By","Owned By","Description","URL","Note"
+    "Deadline","Requested By","Owned By","Description","URL"
   ]
 
   belongs_to :project
@@ -26,7 +26,41 @@ class Story < ActiveRecord::Base
   validates :owned_by_id, :belongs_to_project => true
 
   has_many :changesets
-  has_many :notes
+  has_many :notes do
+
+    # Creates a collection of rows on this story from a CSV::Row instance
+    # Each 'Note' field in the CSV will usually be in the following format:
+    #
+    #   "This is the note body text (Note Author - Dec 25, 2011)"
+    #
+    # This method will attempt to set the user and created_at timestamps
+    # according to the values in the parens.  If the parens are missing, or
+    # their contents cannot be matched or parsed, user and created_at will
+    # not be set.
+    def from_csv_row(row)
+      # Ensure no email notifications get sent during CSV import
+      project = proxy_owner.project
+      project.suppress_notifications
+
+      # Each row can have muliple Note headers.  Extract any of them from
+      # this row.
+      notes = []
+      row.each do |header, value|
+        if header == 'Note' && value
+          note = build(:note => value)
+          if matches = /(.*)\((.*) - (.*)\)$/.match(value)
+            note.note = matches[1].strip
+            note.user = project.users.find_by_name(matches[2])
+            note.created_at = matches[3]
+          end
+          note.save
+          notes << note
+        end
+      end
+      notes
+    end
+
+  end
 
   # This attribute is used to store the user who is acting on a story, for
   # example delivering or modifying it.  Usually set by the controller.
@@ -110,9 +144,8 @@ class Story < ActiveRecord::Base
       requested_by.try(:name),  # Requested By
       owned_by.try(:name),      # Owned By
       description,              # Description
-      nil,                      # URL
-      nil                       # Note
-    ]
+      nil                       # URL
+    ].concat(notes.map(&:to_s))
   end
 
   # Returns the list of state change events that can operate on this story,

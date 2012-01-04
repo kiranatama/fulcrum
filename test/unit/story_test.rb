@@ -179,6 +179,15 @@ class StoryTest < ActiveSupport::TestCase
     end
   end
 
+  test "delivering a story does not send an email when notifications are suppressed" do
+    @story.acting_user = Factory.create(:user)
+    @project.users << @story.acting_user
+    @project.suppress_notifications = true
+    assert_no_difference 'ActionMailer::Base.deliveries.size' do
+      @story.update_attribute :state, 'delivered'
+    end
+  end
+
   test "delivering a story does not send an email to the requestor when email_delivery is false" do
     @story.acting_user = Factory.create(:user)
     @project.users << @story.acting_user
@@ -272,6 +281,13 @@ class StoryTest < ActiveSupport::TestCase
     assert_equal Story.csv_headers.length, @story.to_csv.length
   end
 
+  test "should return a story as a CSV row with notes appended" do
+    assert_equal 0, @story.notes.size
+    @story.notes << Factory.create(:note, :story => @story)
+    assert_equal 1, @story.notes.size
+    assert_equal Story.csv_headers.length + 1, @story.to_csv.length
+  end
+
   test "notify_users should include requestor" do
     assert @story.notify_users.include?(@story.requested_by)
   end
@@ -298,5 +314,36 @@ class StoryTest < ActiveSupport::TestCase
   test "notify_users should not include the same user twice" do
     @story.owned_by = @story.requested_by = @user
     assert_equal [@user], @story.notify_users
+  end
+
+  test "should create notes from a CSV row" do
+    row = [
+      ["Note", "Note 1 (#{@user.name} - Jan 5, 2011)"],
+      ["Note", "Note 2 (Nosuch User - Unparseable date)"],
+      ["Note", "Note 3"]
+    ]
+
+    notes = []
+    assert_difference 'Note.count', row.length do
+      notes = @story.notes.from_csv_row row
+    end
+
+    # Notes should have the right body text
+    assert_equal "Note 1", notes[0].note
+    assert_equal "Note 2", notes[1].note
+    assert_equal "Note 3", notes[2].note
+
+    # Notes should be assigned to the correct user
+    assert_equal @user, notes[0].user
+    assert_nil notes[1].user
+    assert_nil notes[2].user
+
+    # Notes should have the correct created_at time
+    assert_equal DateTime.parse('Jan 5, 2011'), notes[0].created_at
+
+    # Notes should be asigned to the correct story
+    notes.each do |note|
+      assert_equal @story, note.story
+    end
   end
 end
