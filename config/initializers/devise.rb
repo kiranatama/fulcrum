@@ -139,4 +139,7 @@ Devise.setup do |config|
   #   end
   #   manager.default_strategies(:scope => :user).unshift :twitter_oauth
   # end
+
+  require 'openid/store/filesystem'
+  config.omniauth :google_apps, OpenID::Store::Filesystem.new('/tmp'), :domain => 'kiranatama.com'
 end

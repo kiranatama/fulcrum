@@ -15,6 +15,7 @@ gem 'sqlite3-ruby', :require => 'sqlite3'
 # gem 'pg'
 
 gem 'devise', '1.2.1'
+gem 'omniauth', '0.2.0'
 gem 'cancan', '1.6.1'
 gem 'transitions', '0.0.9', :require => ["transitions", "active_record/transitions"]
 

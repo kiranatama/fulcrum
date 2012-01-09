@@ -24,7 +24,7 @@ Fulcrum::Application.routes.draw do
     end
   end
 
-  devise_for :users, :controllers => { :confirmations => "confirmations" }
+  devise_for :users, :controllers => { :confirmations => "confirmations", :omniauth_callbacks => "users/omniauth_callbacks" }
 
   # The priority is based upon order of creation:
   # first created -> highest priority.
