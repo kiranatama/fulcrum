@@ -42,23 +42,17 @@ class User < ActiveRecord::Base
     super(:only => JSON_ATTRIBUTES)
   end
 
-  def self.find_for_google_apps_oauth(access_token, signed_in_resource=nil)
-    data = access_token['user_info']
-    if user = User.find_by_email(data['email'])
+  def self.find_for_open_id(access_token, signed_in_resource=nil)
+    data = access_token.info
+
+    if user = User.where(:email => data["email"]).first
       user
-    else #create a user with stub pwd
+    else
       initials = data['first_name'][0] + data['last_name'][0]
-      user = User.create!(:name => data['name'], :initials => initials, :email => data['email'], :password => Devise.friendly_token[0,20])
+      user = User.create(:name => data["name"], :initials => initials, :email => data['email'], :password => Devise.friendly_token[0,20])
+      return nil unless user.valid?
       user.confirm!
       user
-    end
-  end
-
-  def self.new_with_session(params, session)
-    super.tap do |user|
-      if data = session['devise.google_apps_data'] && session['devise.google_apps_data']['user_info']
-        user.email = data['email']
-      end
     end
   end
 end
