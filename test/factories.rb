@@ -11,6 +11,11 @@ Factory.define :project do |p|
   p.name 'Test Project'
 end
 
+Factory.define :projects_user do |pu|
+  pu.association :user
+  pu.association :project
+end
+
 Factory.define :story do |s|
   s.title 'Test story'
   s.association :requested_by, :factory => :user

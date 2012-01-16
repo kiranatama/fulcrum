@@ -3,7 +3,8 @@ require 'test_helper'
 class UsersControllerTest < ActionController::TestCase
   def setup
     @user = Factory.create(:user)
-    @project = Factory.create(:project, :users => [@user])
+    @project = Factory.create(:project)
+    @assignment = Factory.create(:projects_user, :project => @project, :user => @user, :role => "owner")
   end
 
   test "should not get project users if not logged in" do
@@ -50,6 +51,7 @@ class UsersControllerTest < ActionController::TestCase
     assert_equal @project, assigns(:project)
     assert_equal user, assigns(:user)
     assert assigns(:project).users.include?(user)
+    assert_equal assigns(:user).role_at(@project), "member"
     assert_equal "#{user.email} was added to this project", flash[:notice]
     assert_redirected_to project_users_path(@project)
   end
@@ -68,6 +70,7 @@ class UsersControllerTest < ActionController::TestCase
       assert_equal 'new_user@kiranatama.com', assigns(:user).email
       assert !assigns(:user).confirmed?
       assert assigns(:project).users.include?(assigns(:user))
+      assert_equal assigns(:user).role_at(@project), "member"
       assert_equal "new_user@kiranatama.com was sent an invite to join this project",
         flash[:notice]
       assert_redirected_to project_users_path(@project)
