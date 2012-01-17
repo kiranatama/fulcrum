@@ -14,8 +14,9 @@ gem 'sqlite3-ruby', :require => 'sqlite3'
 # PostgreSQL
 # gem 'pg'
 
-gem 'devise', '1.2.1'
-gem 'omniauth', '0.2.0'
+gem 'devise', '~> 1.5.0'
+gem 'omniauth', '~> 1.0.0'
+gem 'omniauth-openid'
 gem 'cancan', '1.6.1'
 gem 'transitions', '0.0.9', :require => ["transitions", "active_record/transitions"]
 

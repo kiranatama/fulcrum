@@ -15,7 +15,8 @@ class User < ActiveRecord::Base
   # Flag used to identify if the user was found or created from find_or_create
   attr_accessor :was_created
 
-  has_and_belongs_to_many :projects, :uniq => true
+  has_many :projects_users
+  has_many :projects, :through => :projects_users, :uniq => true
 
   before_validation :set_random_password_if_blank, :set_reset_password_token
 
@@ -42,23 +43,21 @@ class User < ActiveRecord::Base
     super(:only => JSON_ATTRIBUTES)
   end
 
-  def self.find_for_google_apps_oauth(access_token, signed_in_resource=nil)
-    data = access_token['user_info']
-    if user = User.find_by_email(data['email'])
+  def self.find_for_open_id(access_token, signed_in_resource=nil)
+    data = access_token.info
+
+    if user = User.where(:email => data["email"]).first
       user
-    else #create a user with stub pwd
+    else
       initials = data['first_name'][0] + data['last_name'][0]
-      user = User.create!(:name => data['name'], :initials => initials, :email => data['email'], :password => Devise.friendly_token[0,20])
+      user = User.create(:name => data["name"], :initials => initials, :email => data['email'], :password => Devise.friendly_token[0,20])
+      return nil unless user.valid?
       user.confirm!
       user
     end
   end
 
-  def self.new_with_session(params, session)
-    super.tap do |user|
-      if data = session['devise.google_apps_data'] && session['devise.google_apps_data']['user_info']
-        user.email = data['email']
-      end
-    end
+  def role_at(project)
+    self.projects_users.where(:project_id => project).first.try(:role)
   end
 end
