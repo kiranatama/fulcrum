@@ -11,7 +11,9 @@ gem 'mysql2', '~> 0.2.6', :group => :production
 # PostgreSQL
 # gem 'pg'
 
-gem 'devise', '1.2.1'
+gem 'devise', '~> 1.5.0'
+gem 'omniauth', '~> 1.0.0'
+gem 'omniauth-openid'
 gem 'cancan', '1.6.1'
 gem 'transitions', '0.0.9', :require => ["transitions", "active_record/transitions"]
 
