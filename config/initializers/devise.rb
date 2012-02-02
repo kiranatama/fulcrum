@@ -71,6 +71,8 @@ Devise.setup do |config|
   # Range for password length
   # config.password_length = 6..20
 
+  # TODO: Validation message should told us that only specific domains 
+  # that can be used as email address
   domains = %w(kiranatama.com)
   # Regex to use to validate the email address
   config.email_regexp = Regexp.new "^([\\w\\.%\\+\\-]+)@(#{domains.join('|')})$", true
