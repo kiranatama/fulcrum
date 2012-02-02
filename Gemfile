@@ -1,4 +1,4 @@
-source 'http://192.168.0.8/gems/'
+source 'http://rubygems.org'
 
 gem 'rails', '3.0.11'
 

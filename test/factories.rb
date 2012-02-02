@@ -1,7 +1,7 @@
 Factory.define :user do |u|
   u.sequence(:name) {|n| "User #{n}"}
   u.sequence(:initials) {|n| "U#{n}"}
-  u.sequence(:email) {|n| "user#{n}@example.com"}
+  u.sequence(:email) {|n| "user#{n}@kiranatama.com"}
   u.password 'password'
   u.password_confirmation 'password'
   u.after_build {|user| user.confirm!}
@@ -9,6 +9,11 @@ end
 
 Factory.define :project do |p|
   p.name 'Test Project'
+end
+
+Factory.define :projects_user do |pu|
+  pu.association :user
+  pu.association :project
 end
 
 Factory.define :story do |s|

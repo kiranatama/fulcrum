@@ -3,7 +3,8 @@ require 'test_helper'
 class UsersControllerTest < ActionController::TestCase
   def setup
     @user = Factory.create(:user)
-    @project = Factory.create(:project, :users => [@user])
+    @project = Factory.create(:project)
+    @assignment = Factory.create(:projects_user, :project => @project, :user => @user, :role => "owner")
   end
 
   test "should not get project users if not logged in" do
@@ -50,6 +51,7 @@ class UsersControllerTest < ActionController::TestCase
     assert_equal @project, assigns(:project)
     assert_equal user, assigns(:user)
     assert assigns(:project).users.include?(user)
+    assert_equal assigns(:user).role_at(@project), "member"
     assert_equal "#{user.email} was added to this project", flash[:notice]
     assert_redirected_to project_users_path(@project)
   end
@@ -61,14 +63,15 @@ class UsersControllerTest < ActionController::TestCase
       post :create, :project_id => @project.to_param,
                     :user => {
                       :name => 'New User', :initials => 'NU',
-                      :email => 'new_user@example.com'
+                      :email => 'new_user@kiranatama.com'
                     }
       assert_not_nil assigns(:users)
       assert_equal @project, assigns(:project)
-      assert_equal 'new_user@example.com', assigns(:user).email
+      assert_equal 'new_user@kiranatama.com', assigns(:user).email
       assert !assigns(:user).confirmed?
       assert assigns(:project).users.include?(assigns(:user))
-      assert_equal "new_user@example.com was sent an invite to join this project",
+      assert_equal assigns(:user).role_at(@project), "member"
+      assert_equal "new_user@kiranatama.com was sent an invite to join this project",
         flash[:notice]
       assert_redirected_to project_users_path(@project)
     end
@@ -80,11 +83,11 @@ class UsersControllerTest < ActionController::TestCase
     assert_no_difference ['User.count', 'ActionMailer::Base.deliveries.size'] do
       post :create, :project_id => @project.to_param,
                     :user => {
-                      :email => 'new_user@example.com'
+                      :email => 'new_user@kiranatama.com'
                     }
       assert_not_nil assigns(:users)
       assert_equal @project, assigns(:project)
-      assert_equal 'new_user@example.com', assigns(:user).email
+      assert_equal 'new_user@kiranatama.com', assigns(:user).email
       assert_response :success
     end
   end
@@ -110,7 +113,7 @@ class UsersControllerTest < ActionController::TestCase
 
     assert_no_difference ['User.count', 'ActionMailer::Base.deliveries.size'] do
       post :create, :project_id => @project.to_param,
-        :user => {:email => 'new_user@example.com'}
+        :user => {:email => 'new_user@kiranatama.com'}
     end
 
     assert_response :missing
@@ -130,5 +133,4 @@ class UsersControllerTest < ActionController::TestCase
     assert_equal user, assigns(:user)
     assert_redirected_to project_users_url(@project)
   end
-
 end

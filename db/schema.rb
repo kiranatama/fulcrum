@@ -1,3 +1,4 @@
+# encoding: UTF-8
 # This file is auto-generated from the current state of the database. Instead
 # of editing this file, please use the migrations feature of Active Record to
 # incrementally modify your database, and then regenerate this schema definition.
@@ -10,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20111009095221) do
+ActiveRecord::Schema.define(:version => 20120110093451) do
 
   create_table "changesets", :force => true do |t|
     t.integer  "story_id"
@@ -38,9 +39,10 @@ ActiveRecord::Schema.define(:version => 20111009095221) do
     t.integer  "default_velocity",    :default => 10
   end
 
-  create_table "projects_users", :id => false, :force => true do |t|
+  create_table "projects_users", :force => true do |t|
     t.integer "project_id"
     t.integer "user_id"
+    t.string  "role",       :default => "member"
   end
 
   create_table "stories", :force => true do |t|
@@ -60,8 +62,8 @@ ActiveRecord::Schema.define(:version => 20111009095221) do
   end
 
   create_table "users", :force => true do |t|
-    t.string   "email",                               :default => "",   :null => false
-    t.string   "encrypted_password",   :limit => 128, :default => "",   :null => false
+    t.string   "email",                               :default => "",    :null => false
+    t.string   "encrypted_password",   :limit => 128, :default => "",    :null => false
     t.string   "reset_password_token"
     t.string   "remember_token"
     t.datetime "remember_created_at"
@@ -81,6 +83,7 @@ ActiveRecord::Schema.define(:version => 20111009095221) do
     t.boolean  "email_delivery",                      :default => true
     t.boolean  "email_acceptance",                    :default => true
     t.boolean  "email_rejection",                     :default => true
+    t.boolean  "admin",                               :default => false
   end
 
   add_index "users", ["confirmation_token"], :name => "index_users_on_confirmation_token", :unique => true

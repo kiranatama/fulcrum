@@ -4,11 +4,17 @@
 <h2>Project members</h2>
 <ul>
   <% @users.each do |user| %>
-    <li><%= user %><%= link_to 'Remove', project_user_path(@project, user),
+    <li>
+      <%= user %>
+    <%- if can? :manage, @project && user != current_user -%>
+      <%= link_to 'Remove', project_user_path(@project, user),
       :confirm => "Are you sure you want to remove #{user.email} from this project?",
-      :method => :delete %></li>
+      :method => :delete %>
+    <%- end -%>
+    </li>
   <% end %>
 </ul>
+<%- if can? :manage, @project -%>
 <h2>Add a new member</h2>
 <div class="form-wrapper">
 <%= form_for project_users_path(@project, @user) do |f| %>
