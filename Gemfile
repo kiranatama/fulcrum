@@ -5,11 +5,8 @@ gem 'rails', '3.0.11'
 # Bundle edge Rails instead:
 # gem 'rails', :git => 'git://github.com/rails/rails.git'
 
-# SQLite
-#gem 'sqlite3-ruby', :require => 'sqlite3'
-
 # MySQL
-gem 'mysql2', '~> 0.2.6'
+gem 'mysql2', '~> 0.2.6', :group => :production
 
 # PostgreSQL
 # gem 'pg'
@@ -48,4 +45,5 @@ group :development, :test do
   gem 'factory_girl_rails'
   gem 'jasmine', '1.1.0'
   gem "letter_opener"
+  gem 'sqlite3-ruby', :require => 'sqlite3'
 end
