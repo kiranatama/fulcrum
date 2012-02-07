@@ -28,7 +28,7 @@ Fulcrum::Application.routes.draw do
     resource :registration,
       only: [:edit, :update],
       path: 'users',
-      controller: 'devise/registrations',
+      controller: 'settings',
       as: :user_registration
   end
 

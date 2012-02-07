@@ -2,8 +2,13 @@ Factory.define :user do |u|
   u.sequence(:name) {|n| "User #{n}"}
   u.sequence(:initials) {|n| "U#{n}"}
   u.sequence(:email) {|n| "user#{n}@kiranatama.com"}
-  u.password 'password'
-  u.password_confirmation 'password'
+end
+
+Factory.define :admin, :class => "User" do |u|
+  u.sequence(:name) {|n| "Admin #{n}"}
+  u.sequence(:initials) {|n| "A#{n}"}
+  u.sequence(:email) {|n| "admin#{n}@kiranatama.com"}
+  u.admin true
 end
 
 Factory.define :project do |p|

@@ -26,6 +26,8 @@ class UsersController < ApplicationController
       flash[:alert] = "#{@user.email} is already a member of this project"
     else
       @project.projects_users.create(:user_id => @user.id, :role => "member")
+      mailer = Mailer.invitation(@project, current_user, @user)
+      mailer.deliver if mailer
 
       if @user.was_created
         flash[:notice] = "#{@user.email} was sent an invite to join this project"

@@ -4,7 +4,12 @@ class UsersControllerTest < ActionController::TestCase
   def setup
     @user = Factory.create(:user)
     @project = Factory.create(:project)
-    @assignment = Factory.create(:projects_user, :project => @project, :user => @user, :role => "owner")
+    Factory.create(:projects_user, :project => @project, :user => @user, :role => "owner")
+
+    # Admin user
+    @admin = Factory.create(:admin)
+    admin_project = Factory.create(:project)
+    Factory.create(:projects_user, :project => admin_project, :user => @admin)
   end
 
   test "should not get project users if not logged in" do
@@ -38,6 +43,13 @@ class UsersControllerTest < ActionController::TestCase
     assert_response :missing
   end
 
+  test "should get other users project users as admin" do
+    sign_in @admin
+    get :index, :project_id => @project.to_param
+    assert_response :success
+    assert_equal [@user], assigns(:users)
+  end
+
   test "should add existing user as project member" do
     user = Factory.create(:user)
     sign_in @user
@@ -59,36 +71,32 @@ class UsersControllerTest < ActionController::TestCase
   test "should create a new user as project member" do
     sign_in @user
 
-    assert_difference ['User.count', 'ActionMailer::Base.deliveries.size'] do
-      post :create, :project_id => @project.to_param,
-                    :user => {
-                      :name => 'New User', :initials => 'NU',
-                      :email => 'new_user@kiranatama.com'
-                    }
-      assert_not_nil assigns(:users)
-      assert_equal @project, assigns(:project)
-      assert_equal 'new_user@kiranatama.com', assigns(:user).email
-      assert assigns(:project).users.include?(assigns(:user))
-      assert_equal assigns(:user).role_at(@project), "member"
-      assert_equal "new_user@kiranatama.com was sent an invite to join this project",
-        flash[:notice]
-      assert_redirected_to project_users_path(@project)
-    end
+    post :create, :project_id => @project.to_param,
+                  :user => {
+                    :name => 'New User', :initials => 'NU',
+                    :email => 'new_user@kiranatama.com'
+                  }
+    assert_not_nil assigns(:users)
+    assert_equal @project, assigns(:project)
+    assert_equal 'new_user@kiranatama.com', assigns(:user).email
+    assert assigns(:project).users.include?(assigns(:user))
+    assert_equal assigns(:user).role_at(@project), "member"
+    assert_equal "new_user@kiranatama.com was sent an invite to join this project",
+      flash[:notice]
+    assert_redirected_to project_users_path(@project)
   end
 
   test "should not create a new invalid user as project member" do
     sign_in @user
 
-    assert_no_difference ['User.count', 'ActionMailer::Base.deliveries.size'] do
-      post :create, :project_id => @project.to_param,
-                    :user => {
-                      :email => 'new_user@kiranatama.com'
-                    }
-      assert_not_nil assigns(:users)
-      assert_equal @project, assigns(:project)
-      assert_equal 'new_user@kiranatama.com', assigns(:user).email
-      assert_response :success
-    end
+    post :create, :project_id => @project.to_param,
+                  :user => {
+                    :email => 'new_user@kiranatama.com'
+                  }
+    assert_not_nil assigns(:users)
+    assert_equal @project, assigns(:project)
+    assert_equal 'new_user@kiranatama.com', assigns(:user).email
+    assert_response :success
   end
 
   test "should not add a user who is already a member" do
@@ -110,7 +118,7 @@ class UsersControllerTest < ActionController::TestCase
     user = Factory.create(:user)
     sign_in user
 
-    assert_no_difference ['User.count', 'ActionMailer::Base.deliveries.size'] do
+    assert_no_difference '@project.users.count' do
       post :create, :project_id => @project.to_param,
         :user => {:email => 'new_user@kiranatama.com'}
     end
@@ -118,11 +126,44 @@ class UsersControllerTest < ActionController::TestCase
     assert_response :missing
   end
 
+  test "should create a new user for someone elses project as admin" do
+    sign_in @admin
+
+    post :create, :project_id => @project.to_param,
+                  :user => {
+                    :name => 'New User', :initials => 'NU',
+                    :email => 'new_user@kiranatama.com'
+                  }
+    assert_not_nil assigns(:users)
+    assert_equal @project, assigns(:project)
+    assert_equal 'new_user@kiranatama.com', assigns(:user).email
+    assert assigns(:project).users.include?(assigns(:user))
+    assert_equal assigns(:user).role_at(@project), "member"
+    assert_equal "new_user@kiranatama.com was sent an invite to join this project",
+      flash[:notice]
+    assert_redirected_to project_users_path(@project)
+  end
+
   test "should remove a project member" do
     user = Factory.create(:user)
     @project.users << user
 
     sign_in @user
+
+    assert_difference '@project.users.count', -1 do
+      delete :destroy, :project_id => @project.to_param,
+        :id => user.id
+    end
+    assert_equal @project, assigns(:project)
+    assert_equal user, assigns(:user)
+    assert_redirected_to project_users_url(@project)
+  end
+
+  test "should remove a someone else project member as admin" do
+    user = Factory.create(:user)
+    @project.users << user
+
+    sign_in @admin
 
     assert_difference '@project.users.count', -1 do
       delete :destroy, :project_id => @project.to_param,
