@@ -2,7 +2,6 @@
 
 user = User.create! :name => 'Test User', :initials => 'TU',
                     :email => 'test@kiranatama.com', :password => 'testpass'
-user.confirm!
 
 project = Project.create! :name => 'Test Project', :users => [user]
 

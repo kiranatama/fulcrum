@@ -5,7 +5,7 @@ class User < ActiveRecord::Base
 
   # Include default devise modules. Others available are:
   # :token_authenticatable, :confirmable, :lockable and :timeoutable
-  devise :database_authenticatable, :registerable, :confirmable,
+  devise :database_authenticatable, :registerable,
          :recoverable, :rememberable, :trackable, :validatable, :omniauthable
 
   # Setup accessible (or protected) attributes for your model
@@ -52,7 +52,6 @@ class User < ActiveRecord::Base
       initials = data['first_name'][0] + data['last_name'][0]
       user = User.create(:name => data["name"], :initials => initials, :email => data['email'], :password => Devise.friendly_token[0,20])
       return nil unless user.valid?
-      user.confirm!
       user
     end
   end

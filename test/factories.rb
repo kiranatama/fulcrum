@@ -4,7 +4,6 @@ Factory.define :user do |u|
   u.sequence(:email) {|n| "user#{n}@kiranatama.com"}
   u.password 'password'
   u.password_confirmation 'password'
-  u.after_build {|user| user.confirm!}
 end
 
 Factory.define :project do |p|

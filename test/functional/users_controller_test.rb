@@ -68,7 +68,6 @@ class UsersControllerTest < ActionController::TestCase
       assert_not_nil assigns(:users)
       assert_equal @project, assigns(:project)
       assert_equal 'new_user@kiranatama.com', assigns(:user).email
-      assert !assigns(:user).confirmed?
       assert assigns(:project).users.include?(assigns(:user))
       assert_equal assigns(:user).role_at(@project), "member"
       assert_equal "new_user@kiranatama.com was sent an invite to join this project",

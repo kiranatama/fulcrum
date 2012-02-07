@@ -24,7 +24,7 @@ Fulcrum::Application.routes.draw do
     end
   end
 
-  devise_for :users, skip: :registrations, :controllers => { :confirmations => "confirmations", :omniauth_callbacks => "users/omniauth_callbacks" } do
+  devise_for :users, skip: :registrations, :controllers => { :omniauth_callbacks => "users/omniauth_callbacks" } do
     resource :registration,
       only: [:edit, :update],
       path: 'users',
