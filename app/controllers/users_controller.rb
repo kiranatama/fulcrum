@@ -1,16 +1,14 @@
 class UsersController < ApplicationController
-  before_filter :prepare_projects
+  before_filter :prepare_project
   respond_to :html, :json
 
   def index
-    @project = @projects.find(params[:project_id])
     @users = @project.users
     @user = User.new
     respond_with(@users)
   end
 
   def create
-    @project = @projects.find(params[:project_id])
     @users = @project.users
     @user = User.find_or_create_by_email(params[:user][:email]) do |u|
       # Set to true if the user was not found
@@ -40,7 +38,6 @@ class UsersController < ApplicationController
   end
 
   def destroy
-    @project = @projects.find(params[:project_id])
     @user = @project.users.find(params[:id])
     @project.users.delete(@user)
     redirect_to project_users_url(@project)
@@ -48,7 +45,7 @@ class UsersController < ApplicationController
 
   protected
 
-  def prepare_projects
-    @projects = current_user.admin? ? Project : current_user.projects
+  def prepare_project
+    @project = (current_user.admin? ? Project : current_user.projects).find(params[:project_id])
   end
 end
