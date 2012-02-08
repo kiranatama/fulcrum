@@ -5,12 +5,11 @@ class User < ActiveRecord::Base
 
   # Include default devise modules. Others available are:
   # :token_authenticatable, :confirmable, :lockable and :timeoutable
-  devise :database_authenticatable, :registerable, :confirmable,
-         :recoverable, :rememberable, :trackable, :validatable, :omniauthable
+  devise :database_authenticatable, :registerable,
+         :trackable, :validatable, :omniauthable
 
   # Setup accessible (or protected) attributes for your model
-  attr_accessible :email, :password, :password_confirmation, :remember_me,
-                  :name, :initials, :email_delivery, :email_acceptance, :email_rejection
+  attr_accessible :initials, :email_delivery, :email_acceptance, :email_rejection
 
   # Flag used to identify if the user was found or created from find_or_create
   attr_accessor :was_created
@@ -18,25 +17,11 @@ class User < ActiveRecord::Base
   has_many :projects_users
   has_many :projects, :through => :projects_users, :uniq => true
 
-  before_validation :set_random_password_if_blank, :set_reset_password_token
-
   validates :name, :presence => true
   validates :initials, :presence => true
 
   def to_s
     "#{name} (#{initials}) <#{email}>"
-  end
-
-  def set_random_password_if_blank
-    if new_record? && self.password.blank? && self.password_confirmation.blank?
-      self.password = self.password_confirmation = Digest::SHA1.hexdigest("--#{Time.now.to_s}--#{email}--")[0,6]
-    end
-  end
-
-  def set_reset_password_token
-    if new_record?
-      self.reset_password_token = Devise.friendly_token
-    end
   end
 
   def as_json(options = {})
@@ -50,14 +35,19 @@ class User < ActiveRecord::Base
       user
     else
       initials = data['first_name'][0] + data['last_name'][0]
-      user = User.create(:name => data["name"], :initials => initials, :email => data['email'], :password => Devise.friendly_token[0,20])
+      user = User.new(:initials => initials)
+      user.name, user.email = data["name"], data["email"]
+      user.save
       return nil unless user.valid?
-      user.confirm!
       user
     end
   end
 
   def role_at(project)
     self.projects_users.where(:project_id => project).first.try(:role)
+  end
+
+  def password_required?
+    false
   end
 end

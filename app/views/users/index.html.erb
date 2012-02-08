@@ -6,7 +6,7 @@
   <% @users.each do |user| %>
     <li>
       <%= user %>
-      <% if can? :manage, @project && user != current_user %>
+      <% if can? :manage, @project and !user.eql?(current_user) %>
         <%= link_to 'Remove', project_user_path(@project, user),
         :confirm => "Are you sure you want to remove #{user.email} from this project?",
         :method => :delete %>

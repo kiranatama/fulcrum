@@ -1,0 +1,7 @@
+Hi <%= @user.name %>,
+
+you have been invited to join <%= @project.name %> project.
+
+Please click link below to access the project's page:
+
+<%= link_to "#{@project.name} Project", project_url(@project) %>
