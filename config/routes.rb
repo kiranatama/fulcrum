@@ -24,12 +24,12 @@ Fulcrum::Application.routes.draw do
     end
   end
 
-  devise_for :users, skip: :registrations, :controllers => { :omniauth_callbacks => "users/omniauth_callbacks" } do
+  devise_for :users, :skip => :registrations, :controllers => { :omniauth_callbacks => "users/omniauth_callbacks" } do
     resource :registration,
-      only: [:edit, :update],
-      path: 'users',
-      controller: 'settings',
-      as: :user_registration
+      :only => [:edit, :update],
+      :path => 'users',
+      :controller => 'settings',
+      :as => :user_registration
   end
 
   # The priority is based upon order of creation:
