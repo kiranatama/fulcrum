@@ -1,20 +1,19 @@
-source 'http://192.168.0.8/gems/'
+source 'http://rubygems.org'
 
 gem 'rails', '3.0.11'
 
 # Bundle edge Rails instead:
 # gem 'rails', :git => 'git://github.com/rails/rails.git'
 
-# SQLite
-#gem 'sqlite3-ruby', :require => 'sqlite3'
-
 # MySQL
-gem 'mysql2', '~> 0.2.6'
+gem 'mysql2', '~> 0.2.6', :group => :production
 
 # PostgreSQL
 # gem 'pg'
 
-gem 'devise', '1.2.1'
+gem 'devise', '~> 1.5.0'
+gem 'omniauth', '~> 1.0.0'
+gem 'omniauth-openid'
 gem 'cancan', '1.6.1'
 gem 'transitions', '0.0.9', :require => ["transitions", "active_record/transitions"]
 
@@ -48,4 +47,5 @@ group :development, :test do
   gem 'factory_girl_rails'
   gem 'jasmine', '1.1.0'
   gem "letter_opener"
+  gem 'sqlite3-ruby', :require => 'sqlite3'
 end

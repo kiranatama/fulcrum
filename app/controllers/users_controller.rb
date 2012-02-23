@@ -1,16 +1,14 @@
 class UsersController < ApplicationController
-
+  before_filter :prepare_project
   respond_to :html, :json
 
   def index
-    @project = current_user.projects.find(params[:project_id])
     @users = @project.users
     @user = User.new
     respond_with(@users)
   end
 
   def create
-    @project = current_user.projects.find(params[:project_id])
     @users = @project.users
     @user = User.find_or_create_by_email(params[:user][:email]) do |u|
       # Set to true if the user was not found
@@ -27,7 +25,10 @@ class UsersController < ApplicationController
     if @project.users.include?(@user)
       flash[:alert] = "#{@user.email} is already a member of this project"
     else
-      @project.users << @user
+      @project.projects_users.create(:user_id => @user.id, :role => "member")
+      mailer = Mailer.invitation(@project, current_user, @user)
+      mailer.deliver if mailer
+
       if @user.was_created
         flash[:notice] = "#{@user.email} was sent an invite to join this project"
       else
@@ -39,10 +40,14 @@ class UsersController < ApplicationController
   end
 
   def destroy
-    @project = current_user.projects.find(params[:project_id])
     @user = @project.users.find(params[:id])
     @project.users.delete(@user)
     redirect_to project_users_url(@project)
   end
 
+  protected
+
+  def prepare_project
+    @project = (current_user.admin? ? Project : current_user.projects).find(params[:project_id])
+  end
 end
