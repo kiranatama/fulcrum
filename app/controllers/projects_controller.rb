@@ -1,9 +1,12 @@
 class ProjectsController < ApplicationController
+  load_and_authorize_resource
+  before_filter :prepare_projects, :except => [:new]
 
   # GET /projects
   # GET /projects.xml
   def index
-    @projects = current_user.projects
+    @projects = @projects.all if current_user.admin?
+
     respond_to do |format|
       format.html # index.html.erb
       format.xml  { render :xml => @projects }
@@ -13,7 +16,7 @@ class ProjectsController < ApplicationController
   # GET /projects/1
   # GET /projects/1.xml
   def show
-    @project = current_user.projects.find(params[:id])
+    @project = @projects.find(params[:id])
     @story = @project.stories.build
 
     respond_to do |format|
@@ -36,15 +39,17 @@ class ProjectsController < ApplicationController
 
   # GET /projects/1/edit
   def edit
-    @project = current_user.projects.find(params[:id])
+    @project = @projects.find(params[:id])
     @project.users.build
   end
 
   # POST /projects
   # POST /projects.xml
   def create
-    @project = current_user.projects.build(params[:project])
-    @project.users << current_user
+    @project = @projects.build(params[:project])
+
+    # User who create a project is automatically assigned as owner
+    @project.projects_users.build(:user_id => current_user.id, :role => "owner")
 
     respond_to do |format|
       if @project.save
@@ -60,7 +65,7 @@ class ProjectsController < ApplicationController
   # PUT /projects/1
   # PUT /projects/1.xml
   def update
-    @project = current_user.projects.find(params[:id])
+    @project = @projects.readonly(false).find(params[:id])
 
     respond_to do |format|
       if @project.update_attributes(params[:project])
@@ -76,7 +81,7 @@ class ProjectsController < ApplicationController
   # DELETE /projects/1
   # DELETE /projects/1.xml
   def destroy
-    @project = current_user.projects.find(params[:id])
+    @project = @projects.find(params[:id])
     @project.destroy
 
     respond_to do |format|
@@ -88,12 +93,18 @@ class ProjectsController < ApplicationController
   # GET /projects/1/users
   # GET /projects/1/users.xml
   def users
-    @project = current_user.projects.find(params[:id])
+    @project = @projects.find(params[:id])
     @users = @project.users
 
     respond_to do |format|
       format.html # users.html.erb
       format.xml  { render :xml => @project }
     end
+  end
+
+  protected
+
+  def prepare_projects
+    @projects = current_user.admin? ? Project : current_user.projects
   end
 end
