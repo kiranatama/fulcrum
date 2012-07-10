@@ -73,9 +73,9 @@ Devise.setup do |config|
 
   # TODO: Validation message should told us that only specific domains 
   # that can be used as email address
-  domains = %w(kiranatama.com)
+  domains = ['kiranatama.com', 'wgs.co.id'].join("|")
   # Regex to use to validate the email address
-  config.email_regexp = Regexp.new "^([\\w\\.%\\+\\-]+)@(#{domains.join('|')})$", true
+  config.email_regexp = Regexp.new "^([\\w\\.%\\+\\-]+)@(#{domains})$", true
 
   # ==> Configuration for :timeoutable
   # The time you want to timeout the user session without activity. After this
